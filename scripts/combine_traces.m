@@ -1,4 +1,4 @@
-SAMPLE = 'A'
+% SAMPLE = 'A' % this comes from Snakefile
 
 %
 % Find individual traces and discover available concentration values
