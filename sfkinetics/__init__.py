@@ -1,2 +1,2 @@
 from .popdata import PopData
-from .timedf import TimeDF
+from .expfit import ExpFit, TransitionFitting
