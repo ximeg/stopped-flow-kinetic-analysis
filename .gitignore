@@ -167,3 +167,9 @@ cython_debug/
 *.asv
 # Compiled MEX binaries (all platforms)
 *.mex*
+
+# Snakemake
+.snakemake/
+
+# SPARTAN
+scripts/rates.mat
