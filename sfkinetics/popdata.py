@@ -1,6 +1,6 @@
 import numpy as np
+import pandas as pd
 from plotnine import ggplot, geom_line, aes, xlab, ylab
-from .timedf import TimeDF
 
 
 class PopData:
@@ -22,7 +22,7 @@ class PopData:
         self.N_any_state = self.N_any_state[subset_]
 
         # Calculate state occupancy
-        self.data = TimeDF(columns=['i', 'C', 'time', 'state_occupancy'])
+        self.data = pd.DataFrame(columns=['i', 'C', 'time', 'state_occupancy'])
         self.data.state_occupancy = self.N_target_state / self.N_any_state
         self.data.time = np.arange(0, len(self.data)) * exp_time
 
