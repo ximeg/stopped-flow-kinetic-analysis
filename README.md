@@ -46,3 +46,25 @@ csvwrite("combined_idl.csv", idl);
 The output is `[ABCD]/combined_idl.csv` file.
 
 Python: use Snakemake. WIP.
+
+
+# Snakemake and MATLAB
+
+To reduce overhead, we connect to a running MATLAB session. Start MATLAB, then share it's session
+by running this in MATLAB terminal:
+
+```
+matlab.engine.shareEngine
+```
+
+After that, Python can find matlab with
+
+```python
+import matlab.engine
+
+matlab.engine.find_matlab()
+```
+
+Looks like Snakemake runs into problems interacting with matlab when number of jobs > 1.
+
+Matlab parallel pool can be disabled in cascadeConstants.m, line 244.
