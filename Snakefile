@@ -1,62 +1,39 @@
-from pathlib import Path
-import matlab.engine 
 import os
 import re
 import shutil
+from util import group_files, fixpath, mkdir, run_matlab
 
 # Use this prefix to filter out specific files. Set to "" to disable
 PREFIX = "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
 SAMPLES = ['A', 'B', 'C', 'D']
-PTRN = rf"({PREFIX}.*_\d{{3}}).rawtraces"
 
+
+# Discover all input data files that match the given pattern
+PTRN = rf"({PREFIX}.*_\d{{3}}).rawtraces"
 raw_data_files = []
 for f in os.listdir("data/rawtraces/"):
     m = re.match(PTRN, f)
     if m:
         raw_data_files.append(m.group(1))
 
-
-#if True:
-#    for s in SAMPLES:
-#       with open(f"data/conf/criteria.mat", "w") as f:
-#           f.write(s)
-
-# Function to group files by unique base names
-def group_files(files):
-    groups = {}
-    for file in files:
-        # Extract base name by removing the last _###
-        base_name = re.sub(r"_\d{3}$", "", file)
-        groups.setdefault(base_name, []).append(file)
-    return groups
-
-# Create the groups
+# Group input files
 GROUPED_FILES = group_files(raw_data_files)
 
-
-
-def fixpath(files):
-    """ fix file path(s) - convert to absolute & POSIX """
-    fun = lambda f: Path(os.path.abspath(f)).as_posix()
-    if isinstance(files, list):
-        return [fun(f) for f in files]
-    else:
-        return fun(files)
-
-def mkdir(files):
-    files = files if isinstance(files, list) else [files]
-    for f in files:
-        os.makedirs(os.path.dirname(f), exist_ok=True)
-
-
+rule test_matlab:
+    input:
+        "test.txt",
+        "test2.txt"
+    output:
+        "data/abc/test_from_matlab.txt"
+    run:
+        mkdir(output)
+        run_matlab("scripts/test.m", input, output, TXT="bye, world!")
 
 
 rule all:
     input:
-        # these are very final files we are trying to create
-        #expand(f"data/{{sample}}/autotrace/{PREFIX}_auto.traces", sample=SAMPLES)
         expand("data/{sample}/autotrace/{group}_auto.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
 
 rule gettraces:

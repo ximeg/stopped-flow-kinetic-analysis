@@ -1,5 +1,5 @@
-input_file = evalin('base', 'INPUT_FILE'); % Cell array of input file paths
-output_file = evalin('base', 'OUTPUT_FILE'); % Output file path
+input_file = evalin('base', 'INPUT');   % Cell array of input file paths
+output_file = evalin('base', 'OUTPUT'); % Output file path
 model_file = evalin('base', 'MODEL');
 
 model = QubModel(model_file);
