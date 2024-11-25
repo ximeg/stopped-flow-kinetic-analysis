@@ -44,74 +44,71 @@ me.find_matlab()
 
 ## Data location and naming patterns
 
-Put your smFRET data into folder `data/tifs`. Use this naming pattern: `<something>_<C>_<rep>.tif`, where `<C>` is in format `00uM` - two digits, and two symbols for units.
 
-Adjust names of the samples in Snakefile, look for line
+Save your smFRET TIFF files into folder `data/tif`. Use this naming pattern: `<PREFIX>_<C>_<rep>.tif`, where `<PREFIX>` is used to filter out files for analysis, and `<C>` is the ligand concentration in format `00uM` - two digits, and two symbols for units (nM, uM, pM, etc).
+
+You can set `<PREFIX>` in `Snakefile`. If set, only matching files are processed.
+
+Also, you can adjust names of your samples in `Snakefile`. Here are some examples:
 
 ```
 SAMPLES = ["A", "B", "C", "D"]
+SAMPLES = ["protein 1", "protein 2", "mutant 1", "mutant 2"]
+SAMPLES = ["membrane protein"]
 ```
+
 You can define either one or four (multiplexed experiment) names. If there are four samples, Snakemake will run `selectPrintedSpots` to extract them. If there is only one sample, this step is skipped.
 
-Put config files (selection criteria, idealization models, etc.) into `data/<SAMPLE>/config` folder. They should be named:
+Finally, you will need `autotrace` selection criteria (`.mat` file) and `batchkinetics` model (`.model` file) for each of your samples. Save them into `data/config` folder. Their names should match your sample names exactly.
+
+Below is an example of the folder structure with `PREFIX="V2Rpp"` and `SAMPLES=["arrestin"]`:
 
 ```
-criteria.mat  # autotrace selection criteria
-bk.model      # batchKinetics model
+data/
+    tif/
+        Stack_000.tif       # ignored due to PREFIX mismatch
+        V2Rpp_02uM_000.tif
+        V2Rpp_02uM_001.tif
+        V2Rpp_10uM_000.tif
+    config/
+        arrestin.mat    # autotrace selection criteria
+        arrestin.model  # batchKinetics model
+    rawtraces/
+        V2Rpp_02uM_000.rawtraces
+        V2Rpp_02uM_001.rawtraces
+        V2Rpp_10uM_000.rawtraces
+    arrestin/
+        rawtraces/      # .rawtraces (created using `selectPrintedSpots` if >1 sample)
+            V2Rpp_02uM_000.rawtraces
+            V2Rpp_02uM_001.rawtraces
+            V2Rpp_10uM_000.rawtraces
+        traces/         # traces combined and saved with `autotrace`
+            V2Rpp_02uM.traces     # traces from  filtered by `autotrace`
+            V2Rpp_10uM.traces
+        idealization/
+            V2Rpp_02uM.dwt     # dwell times of combined traces
+            V2Rpp_02uM.idl     # idealization data for kinetic analysis in Python (CSV format)
+            V2Rpp_10uM.dwt
+            V2Rpp_10uM.idl
+        kinetics/           # output of kinetic analysis in Python
+
 ```
+
 
 ## Data analysis steps
 
-MATLAB:
-
-* Run `gettraces` from SPARTAN. Use it in batch mode to create `rawtraces`.
-* Run `selectPrintedSpots`. Feed it all the `rawtraces`.
-* Gather resulting files ending with `_[ABCD].rawtraces` in separate `A`, `B`, `C`, `D` folders.
-* Run `autotrace`. Load selection criteria, then run it in the batch mode to filter traces and create `_auto.traces`.
-* Run `autotrace` again. Group your data by sample and concentration point; then combine all traces from one repeat together into one `[ABCD]/combined_auto.traces` file.
-* Run automatic gamma correction. Makes `[ABCD]/combined_auto_gcorr.traces` file.
-* Next, do idealization. There is a script for that:
-```matlab
-% Combine all traces matching the pattern together into one file
-fileList = dir('*_auto_gcorr.traces');
-load('criteria.mat');
-options.outFilename = 'combined.traces';
-loadPickSaveTraces({fileList.name}, criteria, options);
-
-% Open traces file and do idealization
-traces = loadTraces('combined.traces')
-exp_time = traces.time(2) - traces.time(1)
-model = QubModel('../D-arrestin_C tail 2.model');
-[idl, model, LL] = skm(traces.fret, exp_time, model, struct());
-
-% Save result to file
-csvwrite("combined_idl.csv", idl);
-```
-The output is `[ABCD]/combined_idl.csv` file.
-
-Python: use Snakemake. WIP.
-
-
-# Snakemake and MATLAB
-
-To reduce overhead, we connect to a running MATLAB session. Start MATLAB, then share it's session
-by running this in MATLAB terminal:
+### Start MATLAB
+To reduce overhead, we connect to a single running MATLAB session. Start MATLAB, then share it's session by running this in MATLAB terminal:
 
 ```
 matlab.engine.shareEngine
 ```
 
-After that, Python can find matlab with
+### Run Snakemake
+Open anaconda terminal, and from the root folder of this project run `Snakemake -j8`, where 8 is the number of parallel processes you want to start (doesn't apply to MATLAB which uses it's own parallel pool).
 
-```python
-import matlab.engine
 
-matlab.engine.find_matlab()
-```
 
-Looks like Snakemake runs into problems interacting with matlab when number of jobs > 1.
-
-Matlab parallel pool can be disabled in cascadeConstants.m, line 244.
 
 # Known inssues
 
