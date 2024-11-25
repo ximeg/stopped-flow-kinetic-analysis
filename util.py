@@ -18,13 +18,16 @@ def group_files(files):
 
 def fixpath(files):
     """ Fix file path(s) - convert to absolute & POSIX """
-    fun = lambda f: Path(os.path.abspath(f)).as_posix()
+
+    def to_posix(f):
+        return Path(os.path.abspath(f)).as_posix()
+
     if isinstance(files, list):
         if len(files) == 1:
-            return fun(files[0])
-        return [fun(f) for f in files]
+            return to_posix(files[0])
+        return [to_posix(f) for f in files]
     else:
-        return fun(files)
+        return to_posix(files)
 
 
 def get_criteria_file(wildcards, criteria_file):
