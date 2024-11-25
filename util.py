@@ -16,22 +16,29 @@ def group_files(files):
     return groups
 
 
-def find_traces(wildcards, n_samples, save_individual):
+def find_traces(wildcards, config):
     """Generate the input file paths for combine_traces."""
-    if save_individual:
+    if not config["AUTOTRACE_EACH"]:
+        return ""
+    if len(config["SAMPLES"]) > 1:
         return f"data/{wildcards.sample}/rawtraces/{wildcards.file}.rawtraces"
-    return ""
+    else:
+        return f"data/rawtraces/{wildcards.file}.rawtraces"
 
 
-def find_traces4combine(wildcards, n_samples, grouped_files, save_individual):
+def find_traces4combine(wildcards, config):
     """Generate the input file paths for combine_traces."""
-    if n_samples > 1:
-        if save_individual:
+    grouped_files = config["GROUPED_FILES"]
+    if len(config["SAMPLES"]) > 1:
+        if config["AUTOTRACE_EACH"]:
             return [f"data/{wildcards.sample}/traces/{g}.traces" for g in grouped_files[wildcards.group]]
         else:
             return [f"data/{wildcards.sample}/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
     else:
-        return [f"data/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
+        if config["AUTOTRACE_EACH"]:
+            return [f"data/{wildcards.sample}/traces/{g}.traces" for g in grouped_files[wildcards.group]]
+        else:
+            return [f"data/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
 
 
 def fixpath(files):

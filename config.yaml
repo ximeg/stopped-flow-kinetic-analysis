@@ -1,0 +1,8 @@
+# Use this prefix to filter out specific files. Set to "" to disable
+PREFIX: "V2Rpp"
+
+# Set names of your samples. A folder will be created for each of them. You can have either one or four
+SAMPLES: "arrestin"
+
+# Whether or not you want to run autotrace on each individual rawtraces file
+AUTOTRACE_EACH: true
