@@ -51,7 +51,7 @@ rule extract_samples:
                 shutil.copy(input.rt, f)
         elif len(SAMPLES) == 4:
             mkdir(output.rt)
-            run_matlab("scripts/extract_samples.m", input, output, PLT=fixpath(output.plt))
+            run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
         else:
             raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
 
@@ -64,9 +64,6 @@ rule autotrace:
     run:
         mkdir(output.at)
 
-        txt = ""
-        for f in input.rt:
-            with open(f, 'r') as fh:
-                txt += fh.read()
-        with open(output.at, 'w') as fh:
-            fh.write(txt)
+        run_matlab("scripts/combine_traces.m", input.rt, output.at, CRITERIA=fixpath(input.criteria))
+
+

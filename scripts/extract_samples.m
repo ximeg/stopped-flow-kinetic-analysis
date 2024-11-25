@@ -1,10 +1,4 @@
-input_file = evalin('base', 'INPUT');     % single input file
-output_files = evalin('base', 'OUTPUT');  % four output files
-
 disp("---- MATLAB: extract_samples ----")
-disp("INPUT:  " + input_file);
-disp("OUTPUT: " + output_files);
-
 
 % Select molecules with positions that are within four quadrants of the
 % field of view multiplexed surface patterning experiments. To reduce the
@@ -20,8 +14,8 @@ nY = 1152;  %defaults for 2x2 binned, full-frame Hamamatsu Fusion cameras.
 
     
 % Load trace data and extract molecule locations
-data = loadTraces(input_file);
-[p,f,e] = fileparts(input_file);
+data = loadTraces(INPUT);
+[p,f,e] = fileparts(INPUT);
 x = to_row( [data.traceMetadata.donor_x] );
 y = to_row( [data.traceMetadata.donor_y] );
 
@@ -44,10 +38,10 @@ C = selectCenter(data,  y >  floor(nY/2) & x <= floor(nX/2), STD, 'go' ); % bott
 D = selectCenter(data,  y >  floor(nY/2) & x >  floor(nX/2), STD, 'mo' ); % bottom right
 
 % Save the each subset associated with a quadrant
-saveTraces( output_files{1}, A );
-saveTraces( output_files{2}, B );
-saveTraces( output_files{3}, C );
-saveTraces( output_files{4}, D )
+saveTraces( OUTPUT{1}, A );
+saveTraces( OUTPUT{2}, B );
+saveTraces( OUTPUT{3}, C );
+saveTraces( OUTPUT{4}, D )
 
 
 axis equal;
