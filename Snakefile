@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from util import group_files, fixpath, mkdir, run_matlab
+from util import group_files, fixpath, mkdir, run_matlab, get_criteria_file
 
 # Use this prefix to filter out specific files. Set to "" to disable
 PREFIX = "V2Rpp"
@@ -58,7 +58,7 @@ rule extract_samples:
 rule autotrace:
     input:
         rt=lambda wildcards: [f"data/{{sample}}/rawtraces/{g}.rawtraces" for g in GROUPED_FILES[wildcards.group]],
-        criteria="data/conf/{sample}.mat"
+        criteria=lambda wildcards: get_criteria_file(wildcards, "data/conf/{sample}.mat")
     output:
         at="data/{sample}/autotrace/{group}_auto.traces"
     run:

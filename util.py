@@ -34,6 +34,24 @@ def mkdir(files):
     for f in files:
         os.makedirs(os.path.dirname(fixpath(f)), exist_ok=True)
 
+
+def get_criteria_file(wildcards, criteria_file):
+    """
+    Find autotrace criteria file using provided template and wildcards.
+    If not found, return the default criteria file.
+    :param wildcards: snakemake wildcards
+    :param criteria_file: template filename, with wildcards in it
+    :return: path to autotrace criteria file
+    """
+    criteria_file = criteria_file.format(**wildcards)
+    if os.path.exists(criteria_file):
+        # Use the override file if it exists
+        return criteria_file
+    else:
+        # Fallback to default if the override does not exist
+        return "resources/default_criteria.mat"
+
+
 def run_matlab(script, input_files, output_files, **kwargs):
     eng_sessions = me.find_matlab()  # Check for existing MATLAB sessions
     if not eng_sessions:
