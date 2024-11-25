@@ -31,7 +31,13 @@ rule all:
             "data/{sample}/combined_traces/{group}.traces",
             sample=SAMPLES,
             group=config["GROUPED_FILES"].keys()),
-        "workflow_graph.png"
+        "workflow_graph.png",
+        expand("data/{sample}/plt_traces/{group}.fig",
+            sample=SAMPLES,
+            group=config["GROUPED_FILES"].keys()),
+        expand("data/{sample}/plt_traces/{group}.png",
+            sample=SAMPLES,
+            group=config["GROUPED_FILES"].keys())
 
 
 
@@ -93,6 +99,22 @@ rule combine_traces:
             CRITERIA=fixpath(input.criteria)
         )
 
+
+# Contour plots
+
+rule contour_plots_individual:
+    input:
+        lambda wildcards: input4combine_traces(wildcards,config)
+    output:
+        "data/{sample}/plt_traces/{group}.fig",
+        "data/{sample}/plt_traces/{group}.png"
+    run:
+        run_matlab(
+            script="scripts/make_contour_plots.m",
+            input=input,
+            output=output,
+            N_FRAMES=int(config["PLOTS"]["N_frames"])
+        )
 
 # Create a graph of the workflow
 rule workflow_graph:

@@ -16,3 +16,4 @@ PLOTS:
   extract_samples: true
   contour_individual: true
   contour_combined: true
+  N_frames: 450
