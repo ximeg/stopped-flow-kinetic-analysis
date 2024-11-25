@@ -4,17 +4,61 @@ Intro
 
 ## Requirements
 
-[SPARTAN](https://github.com/stjude-smc/SPARTAN) for MATLAB, and following packages for Python:
+### MATLAB
+MATLAB and [SPARTAN](https://github.com/stjude-smc/SPARTAN). We are going to use MATLAB together with Python,
+and there are some restrictions. MATLAB 2019 is compatible with Python up to 3.7, while MATLAB 2022 works with Python up to 3.10.
 
+### Python
+Due to MATLAB-Python compatibility issues described above, you'd have to create a python environment and install a specific version
+of the interpreter. Open Anaconda terminal, and run:
+
+```bash
+conda create -n snake python=3.7
+conda activate snake
+pip install ipython scipy pandas plotnine snakemake pulp==2.7
 ```
-pip install pandas plotnine scipy snakemake
+
+After that, you need to install the [MATLAB engine for Python](https://www.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html).
+Most likely, you'd need admin rights for that. If this is the case, run Anaconda terminal as admin, activate **snake** environment again, then navigate to MATLAB
+installation folder (adjust for your MATLAB version), and install MATLAB engine for Python:
+
+```bash
+conda activate snake
+cd "c:\Program Files\MATLAB\R2019a\extern\engines\python"
+pip install .
+```
+
+If this works, you should be able to start a matlab session and detect it from Python:
+
+```matlab
+# run this in MATLAB
+matlab.engine.shareEngine
+```
+
+```python
+# run this in Python
+import matlab.engine as me
+me.find_matlab()
+>> ('MATLAB_123123')
 ```
 
 ## Data location and naming patterns
 
-Put your smFRET data into folder `data/spartan`. Use this naming pattern: `<something>_<C>_<rep>.tif`.
+Put your smFRET data into folder `data/tifs`. Use this naming pattern: `<something>_<C>_<rep>.tif`, where `<C>` is in format `00uM` - two digits, and two symbols for units.
 
-Put config files (selection criteria, idealization models, etc.) into `data/config` folder.
+Adjust names of the samples in Snakefile, look for line
+
+```
+SAMPLES = ["A", "B", "C", "D"]
+```
+You can define either one or four (multiplexed experiment) names. If there are four samples, Snakemake will run `selectPrintedSpots` to extract them. If there is only one sample, this step is skipped.
+
+Put config files (selection criteria, idealization models, etc.) into `data/<SAMPLE>/config` folder. They should be named:
+
+```
+criteria.mat  # autotrace selection criteria
+bk.model      # batchKinetics model
+```
 
 ## Data analysis steps
 
