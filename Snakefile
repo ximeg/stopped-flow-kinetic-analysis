@@ -24,20 +24,25 @@ for f in os.listdir("data/rawtraces/"):
 config["GROUPED_FILES"] = group_files(raw_data_files)
 
 
+# Generate names of the target files
+combined_traces_ptrn = "data/{sample}/combined_traces/{group}.traces"
+combined_traces_target = expand(
+            combined_traces_ptrn,
+            sample=SAMPLES,
+            group=config["GROUPED_FILES"].keys())
+
+contour_plots_ptrn = "data/{sample}/plt_traces/{group}.{fmt}"
+contour_plots_target = expand(contour_plots_ptrn,
+            sample=SAMPLES,
+            fmt=config["PLOTS"]['contour_formats'],
+            group=config["GROUPED_FILES"].keys()) if config["PLOTS"]["contour_individual"] else []
+
 # Main rule that defines what we want to get in the end
 rule all:
     input:
-        expand(
-            "data/{sample}/combined_traces/{group}.traces",
-            sample=SAMPLES,
-            group=config["GROUPED_FILES"].keys()),
+        combined_traces_target,
         "workflow_graph.png",
-        expand("data/{sample}/plt_traces/{group}.fig",
-            sample=SAMPLES,
-            group=config["GROUPED_FILES"].keys()),
-        expand("data/{sample}/plt_traces/{group}.png",
-            sample=SAMPLES,
-            group=config["GROUPED_FILES"].keys())
+        contour_plots_target
 
 
 
@@ -90,7 +95,7 @@ rule combine_traces:
         traces   = lambda wildcards: input4combine_traces(wildcards, config),
         criteria = lambda wildcards: get_criteria_file(wildcards, "data/conf/{sample}.mat")
     output:
-        "data/{sample}/combined_traces/{group}.traces"
+        combined_traces_ptrn
     run:
         run_matlab(
             script="scripts/combine_traces.m",
@@ -106,14 +111,14 @@ rule contour_plots_individual:
     input:
         lambda wildcards: input4combine_traces(wildcards,config)
     output:
-        "data/{sample}/plt_traces/{group}.fig",
-        "data/{sample}/plt_traces/{group}.png"
+        contour_plots_ptrn
     run:
+        print(output)
         run_matlab(
             script="scripts/make_contour_plots.m",
             input=input,
             output=output,
-            N_FRAMES=int(config["PLOTS"]["N_frames"])
+            N_FRAMES=int(config["PLOTS"]["contour_N_frames"])
         )
 
 # Create a graph of the workflow

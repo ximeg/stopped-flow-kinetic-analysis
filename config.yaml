@@ -3,10 +3,10 @@ PREFIX: "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
 SAMPLES:
-  - A
-  - B
-  - C
-  - D
+  - C-tail 1
+  - FL
+  - Cdom
+  - C-tail 2
 
 # Whether you want to run autotrace on each individual rawtraces file
 AUTOTRACE_EACH: true
@@ -16,4 +16,8 @@ PLOTS:
   extract_samples: true
   contour_individual: true
   contour_combined: true
-  N_frames: 450
+  contour_N_frames: 500
+  contour_formats:
+    - fig
+    - png
+    - pdf

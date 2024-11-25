@@ -3,8 +3,7 @@ titles = trimtitles(INPUT);
 options.contour_length = single(N_FRAMES)
 makeplots(INPUT, titles, options)
 
-saveas(gcf, OUTPUT{1});
-saveas(gcf, OUTPUT{2});
+saveas(gcf, OUTPUT);
 close(gcf);
 
 disp("---- END MATLAB ----")
