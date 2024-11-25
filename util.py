@@ -16,10 +16,20 @@ def group_files(files):
     return groups
 
 
-def find_traces(wildcards, n_samples, grouped_files):
+def find_traces(wildcards, n_samples, save_individual):
+    """Generate the input file paths for combine_traces."""
+    if save_individual:
+        return f"data/{wildcards.sample}/rawtraces/{wildcards.file}.rawtraces"
+    return ""
+
+
+def find_traces4combine(wildcards, n_samples, grouped_files, save_individual):
     """Generate the input file paths for combine_traces."""
     if n_samples > 1:
-        return [f"data/{wildcards.sample}/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
+        if save_individual:
+            return [f"data/{wildcards.sample}/traces/{g}.traces" for g in grouped_files[wildcards.group]]
+        else:
+            return [f"data/{wildcards.sample}/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
     else:
         return [f"data/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
 

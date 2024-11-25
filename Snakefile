@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from util import group_files, fixpath, run_matlab, get_criteria_file, find_traces
+from util import group_files, fixpath, run_matlab, get_criteria_file, find_traces, find_traces4combine
 
 ### -------------------------------------
 ### START OF USER-CONFIGURABLE PARAMETERS
@@ -12,6 +12,7 @@ PREFIX = "V2Rpp"
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
 SAMPLES = ['A', 'B', 'C', 'D']
 
+SAVE_INDIVIDUAL_TRACES = False
 ### -------------------------------------
 ### END OF USER-CONFIGURABLE PARAMETERS
 ### -------------------------------------
@@ -39,7 +40,7 @@ extract_folder = [] if len(SAMPLES) == 1 else ["plt-extract_samples"]
 
 rule all:
     input:
-        expand("data/{sample}/combined_traces/{group}_auto.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
+        expand("data/{sample}/combined_traces/{group}.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
 
 rule gettraces:
     input:
@@ -58,12 +59,26 @@ rule extract_samples:
     run:
         run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
 
+rule autotrace_each:
+    input:
+        traces = lambda wildcards: find_traces(wildcards, len(SAMPLES), SAVE_INDIVIDUAL_TRACES),
+        criteria = lambda wildcards: get_criteria_file(wildcards,"data/conf/{sample}.mat")
+    output:
+        "data/{sample}/traces/{file}.traces"
+    run:
+        run_matlab(
+            script="scripts/combine_traces.m",
+            input=input.traces,
+            output=output,
+            CRITERIA=fixpath(input.criteria)
+        )
+
 rule combine_traces:
     input:
-        traces   = lambda wildcards: find_traces(wildcards, len(SAMPLES), GROUPED_FILES),
+        traces   = lambda wildcards: find_traces4combine(wildcards, len(SAMPLES), GROUPED_FILES, SAVE_INDIVIDUAL_TRACES),
         criteria = lambda wildcards: get_criteria_file(wildcards, "data/conf/{sample}.mat")
     output:
-        "data/{sample}/combined_traces/{group}_auto.traces"
+        "data/{sample}/combined_traces/{group}.traces"
     run:
         run_matlab(
             script="scripts/combine_traces.m",
