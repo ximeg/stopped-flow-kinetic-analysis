@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from util import group_files, fixpath, run_matlab, get_criteria_file
+from util import group_files, fixpath, run_matlab, get_criteria_file, find_traces
 
 ### -------------------------------------
 ### START OF USER-CONFIGURABLE PARAMETERS
@@ -10,7 +10,7 @@ from util import group_files, fixpath, run_matlab, get_criteria_file
 PREFIX = "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
-SAMPLES = "arrestin"
+SAMPLES = ['A', 'B', 'C', 'D']
 
 ### -------------------------------------
 ### END OF USER-CONFIGURABLE PARAMETERS
@@ -39,7 +39,7 @@ extract_folder = [] if len(SAMPLES) == 1 else ["plt-extract_samples"]
 
 rule all:
     input:
-        expand("data/{sample}/autotrace/{group}_auto.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
+        expand("data/{sample}/combined_traces/{group}_auto.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
 
 rule gettraces:
     input:
@@ -58,13 +58,18 @@ rule extract_samples:
     run:
         run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
 
-rule autotrace:
+rule combine_traces:
     input:
-        rt=lambda wildcards: [f"data/{{sample}}/rawtraces/{g}.rawtraces" for g in GROUPED_FILES[wildcards.group]],
-        criteria=lambda wildcards: get_criteria_file(wildcards, "data/conf/{sample}.mat")
+        traces   = lambda wildcards: find_traces(wildcards, len(SAMPLES), GROUPED_FILES),
+        criteria = lambda wildcards: get_criteria_file(wildcards, "data/conf/{sample}.mat")
     output:
-        at="data/{sample}/autotrace/{group}_auto.traces"
+        "data/{sample}/combined_traces/{group}_auto.traces"
     run:
-        run_matlab("scripts/combine_traces.m", input.rt, output.at, CRITERIA=fixpath(input.criteria))
+        run_matlab(
+            script="scripts/combine_traces.m",
+            input=input.traces,
+            output=output[0],
+            CRITERIA=fixpath(input.criteria)
+        )
 
 

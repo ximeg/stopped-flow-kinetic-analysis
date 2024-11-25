@@ -1,66 +1,55 @@
-if length(INPUT) == 4
+disp("---- MATLAB: extract_samples ----")
 
-    disp("---- MATLAB: extract_samples ----")
+% Select molecules with positions that are within four quadrants of the
+% field of view multiplexed surface patterning experiments. To reduce the
+% contribution of non-specifically bound molecules, only the center of each
+% spot is selected using a 2D Gaussian fit of molecule locations.
+% 
+% Files will be saved to paths specified by `output_file`
 
-    % Select molecules with positions that are within four quadrants of the
-    % field of view multiplexed surface patterning experiments. To reduce the
-    % contribution of non-specifically bound molecules, only the center of each
-    % spot is selected using a 2D Gaussian fit of molecule locations.
-    %
-    % Files will be saved to paths specified by `output_file`
+% Parameters
+STD = 1.9;  %max distance from center of printed spot, number of standard deviations
+nX = 1152;
+nY = 1152;  %defaults for 2x2 binned, full-frame Hamamatsu Fusion cameras.
 
-    % Parameters
-    STD = 1.9;  %max distance from center of printed spot, number of standard deviations
-    nX = 1152;
-    nY = 1152;  %defaults for 2x2 binned, full-frame Hamamatsu Fusion cameras.
+    
+% Load trace data and extract molecule locations
+data = loadTraces(INPUT);
+[p,f,e] = fileparts(INPUT);
+x = to_row( [data.traceMetadata.donor_x] );
+y = to_row( [data.traceMetadata.donor_y] );
 
+if isfield(data.fileMetadata,'nX')
+    nX = data.fileMetadata.nX;
+    nY = data.fileMetadata.nY;
+end
 
-    % Load trace data and extract molecule locations
-    data = loadTraces(INPUT);
-    [p,f,e] = fileparts(INPUT);
-    x = to_row( [data.traceMetadata.donor_x] );
-    y = to_row( [data.traceMetadata.donor_y] );
-
-    if isfield(data.fileMetadata,'nX')
-        nX = data.fileMetadata.nX;
-        nY = data.fileMetadata.nY;
-    end
-
-    figure; hold on;
-    title([f e],'Interpreter','none');
-    %legend( {'Rejected','A','B','C','D'} );
-    axis([0 nX 0 nY]);
+figure; hold on;
+title([f e],'Interpreter','none');
+%legend( {'Rejected','A','B','C','D'} );
+axis([0 nX 0 nY]);
 
 
-    % Split FOV into four quadrants by molecule position.
-    % Origin is top-lelt corner. order=[A B; C D]
-    A = selectCenter(data,  y <= floor(nY/2) & x <= floor(nX/2), STD, 'ro' ); % top left
-    B = selectCenter(data,  y <= floor(nY/2) & x >  floor(nX/2), STD, 'bo' ); % top right
-    C = selectCenter(data,  y >  floor(nY/2) & x <= floor(nX/2), STD, 'go' ); % bottom left
-    D = selectCenter(data,  y >  floor(nY/2) & x >  floor(nX/2), STD, 'mo' ); % bottom right
+% Split FOV into four quadrants by molecule position.
+% Origin is top-lelt corner. order=[A B; C D]
+A = selectCenter(data,  y <= floor(nY/2) & x <= floor(nX/2), STD, 'ro' ); % top left
+B = selectCenter(data,  y <= floor(nY/2) & x >  floor(nX/2), STD, 'bo' ); % top right
+C = selectCenter(data,  y >  floor(nY/2) & x <= floor(nX/2), STD, 'go' ); % bottom left
+D = selectCenter(data,  y >  floor(nY/2) & x >  floor(nX/2), STD, 'mo' ); % bottom right
 
-    % Save the each subset associated with a quadrant
-    saveTraces( OUTPUT{1}, A );
-    saveTraces( OUTPUT{2}, B );
-    saveTraces( OUTPUT{3}, C );
-    saveTraces( OUTPUT{4}, D )
-
-
-    axis equal;
-    saveas(gcf, PLT);
-    close(gcf);  % Close the figure
+% Save the each subset associated with a quadrant
+saveTraces( OUTPUT{1}, A );
+saveTraces( OUTPUT{2}, B );
+saveTraces( OUTPUT{3}, C );
+saveTraces( OUTPUT{4}, D )
 
 
-    disp("---- END MATLAB ----")
+axis equal;
+saveas(gcf, PLT);
+close(gcf);  % Close the figure
 
-else
-    [status, message] = copyfile(INPUT, OUTPUT);
-    if status
-        disp('File copied successfully.');
-    else
-        disp(['Failed to copy file: ', message]);
-    end
-end % if four input files
+
+disp("---- END MATLAB ----")
 clear all;
 
 

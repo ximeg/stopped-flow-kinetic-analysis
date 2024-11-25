@@ -16,6 +16,14 @@ def group_files(files):
     return groups
 
 
+def find_traces(wildcards, n_samples, grouped_files):
+    """Generate the input file paths for combine_traces."""
+    if n_samples > 1:
+        return [f"data/{wildcards.sample}/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
+    else:
+        return [f"data/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
+
+
 def fixpath(files):
     """ Fix file path(s) - convert to absolute & POSIX """
 
@@ -47,15 +55,15 @@ def get_criteria_file(wildcards, criteria_file):
         return "resources/default_criteria.mat"
 
 
-def run_matlab(script, input_files, output_files, **kwargs):
+def run_matlab(script, input, output, **kwargs):
     eng_sessions = me.find_matlab()  # Check for existing MATLAB sessions
     if not eng_sessions:
         eng = me.start_matlab()
     else:
         eng = me.connect_matlab(eng_sessions[0])
 
-    eng.workspace['INPUT'] = fixpath(input_files)
-    eng.workspace['OUTPUT'] = fixpath(output_files)
+    eng.workspace['INPUT'] = fixpath(input)
+    eng.workspace['OUTPUT'] = fixpath(output)
     for key, value in kwargs.items():
         eng.workspace[key] = value
 
