@@ -28,13 +28,6 @@ def fixpath(files):
         return fun(files)
 
 
-def mkdir(files):
-    """ Create the directory structure for given file(s) """
-    files = files if isinstance(files, list) else [files]
-    for f in files:
-        os.makedirs(os.path.dirname(fixpath(f)), exist_ok=True)
-
-
 def get_criteria_file(wildcards, criteria_file):
     """
     Find autotrace criteria file using provided template and wildcards.

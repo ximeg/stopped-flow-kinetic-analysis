@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from util import group_files, fixpath, mkdir, run_matlab, get_criteria_file
+from util import group_files, fixpath, run_matlab, get_criteria_file
 
 # Use this prefix to filter out specific files. Set to "" to disable
 PREFIX = "V2Rpp"
@@ -32,7 +32,6 @@ rule gettraces:
     output:
         rt="data/rawtraces/{file}.rawtraces"
     run:
-        mkdir(output)
         shutil.copy(input.tif, output.rt)
 
 rule extract_samples:
@@ -42,15 +41,11 @@ rule extract_samples:
         rt=expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES),
         plt=expand("data/plt-extract_samples/{{file}}.png")
     run:
-        mkdir(output.rt)
-        mkdir(output.plt)
-
         if len(SAMPLES) == 1:  # don't run extract_samples
             print("One sample - skipping `extract_samples`")
             for f in output.rt:
                 shutil.copy(input.rt, f)
         elif len(SAMPLES) == 4:
-            mkdir(output.rt)
             run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
         else:
             raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
@@ -62,8 +57,6 @@ rule autotrace:
     output:
         at="data/{sample}/autotrace/{group}_auto.traces"
     run:
-        mkdir(output.at)
-
         run_matlab("scripts/combine_traces.m", input.rt, output.at, CRITERIA=fixpath(input.criteria))
 
 
