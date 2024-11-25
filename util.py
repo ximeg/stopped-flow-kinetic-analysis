@@ -16,29 +16,22 @@ def group_files(files):
     return groups
 
 
-def find_traces(wildcards, config):
-    """Generate the input file paths for combine_traces."""
-    if not config["AUTOTRACE_EACH"]:
-        return ""
-    if len(config["SAMPLES"]) > 1:
+def input4autotrace_each(wildcards, config):
+    """Generate the input file paths for autotrace_each"""
+    # Collect all rawtraces if we need to run autotrace for each input file...
+    if config["AUTOTRACE_EACH"]:
         return f"data/{wildcards.sample}/rawtraces/{wildcards.file}.rawtraces"
     else:
-        return f"data/rawtraces/{wildcards.file}.rawtraces"
+        # otherwise, there is nothing to do
+        return ""
 
 
-def find_traces4combine(wildcards, config):
-    """Generate the input file paths for combine_traces."""
-    grouped_files = config["GROUPED_FILES"]
-    if len(config["SAMPLES"]) > 1:
-        if config["AUTOTRACE_EACH"]:
-            return [f"data/{wildcards.sample}/traces/{g}.traces" for g in grouped_files[wildcards.group]]
-        else:
-            return [f"data/{wildcards.sample}/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
-    else:
-        if config["AUTOTRACE_EACH"]:
-            return [f"data/{wildcards.sample}/traces/{g}.traces" for g in grouped_files[wildcards.group]]
-        else:
-            return [f"data/rawtraces/{g}.rawtraces" for g in grouped_files[wildcards.group]]
+def input4combine_traces(wildcards, config):
+    """Generate the input file paths for combine_traces"""
+    grp = config["GROUPED_FILES"]
+    # We have traces files, and just need to combine them
+    filetype = "traces" if config["AUTOTRACE_EACH"] else "rawtraces"
+    return [f"data/{wildcards.sample}/{filetype}/{g}.{filetype}" for g in grp[wildcards.group]]
 
 
 def fixpath(files):
