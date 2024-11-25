@@ -21,16 +21,6 @@ for f in os.listdir("data/rawtraces/"):
 # Group input files
 GROUPED_FILES = group_files(raw_data_files)
 
-rule test_matlab:
-    input:
-        "test.txt",
-        "test2.txt"
-    output:
-        "data/abc/test_from_matlab.txt"
-    run:
-        mkdir(output)
-        run_matlab("scripts/test.m", input, output, TXT="bye, world!")
-
 
 rule all:
     input:
@@ -45,7 +35,7 @@ rule gettraces:
         mkdir(output)
         shutil.copy(input.tif, output.rt)
 
-rule spots:
+rule extract_samples:
     input:
         rt="data/rawtraces/{file}.rawtraces"
     output:
@@ -53,14 +43,13 @@ rule spots:
     run:
         mkdir(output.rt)
 
-        if len(SAMPLES) == 1:  # don't run selectPrintedSpots
-            print("One sample - skipping `selectPrintedSpots`")
+        if len(SAMPLES) == 1:  # don't run extract_samples
+            print("One sample - skipping `extract_samples`")
             for f in output.rt:
                 shutil.copy(input.rt, f)
         elif len(SAMPLES) == 4:
-            print("Running `selectPrintedSpots`")
-            for f in output.rt:
-                shutil.copy(input.rt, f)
+            mkdir(output.rt)
+            run_matlab("scripts/extract_samples.m", input, output)
         else:
             raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
 

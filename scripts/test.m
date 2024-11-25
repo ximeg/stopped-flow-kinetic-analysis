@@ -1,9 +1,10 @@
 % Read variables from the base workspace
-input_file = evalin('base', 'INPUT');   % Cell array of input file paths
+input_files = evalin('base', 'INPUT');   % Cell array of input file paths
 output_file = evalin('base', 'OUTPUT'); % Output file path
 text = evalin('base', 'TXT');           % Text to append
 
-disp(input_file);
+disp("---- MATLAB ----")
+disp(input_files);
 disp(output_file);
 disp(text);
 
@@ -12,9 +13,9 @@ disp(text);
 combined_text = "";
 
 % Loop through each input file and read its content
-for i = 1:length(input_file)
+for i = 1:length(input_files)
     % Read the content of the current input file
-    current_text = fileread(input_file{i});
+    current_text = fileread(input_files{i});
     % Append the content to the combined text
     combined_text = combined_text + newline + current_text;
 end
@@ -32,3 +33,8 @@ fprintf(fid, '%s', combined_text);
 fclose(fid);
 
 disp(['Combined text saved to ', output_file]);
+disp("---- MATLAB ----")
+
+
+
+clear all;
