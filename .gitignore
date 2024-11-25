@@ -170,6 +170,7 @@ cython_debug/
 
 # Snakemake
 .snakemake/
+workflow_graph.*
 
 # SPARTAN
 scripts/rates.mat

@@ -13,6 +13,6 @@ AUTOTRACE_EACH: true
 
 # Plotting - what plots to save?
 PLOTS:
-  extract_samples: false
+  extract_samples: true
   contour_individual: true
   contour_combined: true

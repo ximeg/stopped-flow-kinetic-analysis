@@ -30,7 +30,8 @@ rule all:
         expand(
             "data/{sample}/combined_traces/{group}.traces",
             sample=SAMPLES,
-            group=config["GROUPED_FILES"].keys())
+            group=config["GROUPED_FILES"].keys()),
+        "workflow_graph.png"
 
 
 
@@ -38,11 +39,10 @@ rule all:
 # This rule checks number of samples. If only one, it temporarily copies rawtraces to data/<sample>/rawtraces/.
 # If there are multiple samples, the corresponding traces are extracted and saved under data/<sample_N>/rawtraces/
 extract_samples_path = expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES)
-print(extract_samples_path)
+
 if len(SAMPLES) == 1:
     # mark duplicates of rawtraces as temporary
     extract_samples_path = [temp(s) for s in extract_samples_path]
-    print(extract_samples_path)
 
 plots_folder = []
 if config["PLOTS"]["extract_samples"] and len(SAMPLES) > 1:
@@ -94,3 +94,11 @@ rule combine_traces:
         )
 
 
+# Create a graph of the workflow
+rule workflow_graph:
+    output:
+        "workflow_graph.png"
+    shell:
+        """
+        snakemake --dag | dot -Tpng > {output}
+        """
