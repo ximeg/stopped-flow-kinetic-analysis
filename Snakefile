@@ -9,13 +9,13 @@ PREFIX = "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
 SAMPLES = ['A', 'B', 'C', 'D']
-PTRN = rf"({PREFIX}.*_\d{{3}}).tif"
+PTRN = rf"({PREFIX}.*_\d{{3}}).rawtraces"
 
-tifs = []
-for f in os.listdir("data/tif/"):
+raw_data_files = []
+for f in os.listdir("data/rawtraces/"):
     m = re.match(PTRN, f)
     if m:
-        tifs.append(m.group(1))
+        raw_data_files.append(m.group(1))
 
 
 #if True:
@@ -33,7 +33,7 @@ def group_files(files):
     return groups
 
 # Create the groups
-GROUPED_FILES = group_files(tifs)
+GROUPED_FILES = group_files(raw_data_files)
 
 
 
