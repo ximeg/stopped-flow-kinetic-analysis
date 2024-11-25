@@ -3,12 +3,26 @@ import re
 import shutil
 from util import group_files, fixpath, run_matlab, get_criteria_file
 
+### -------------------------------------
+### START OF USER-CONFIGURABLE PARAMETERS
+### -------------------------------------
 # Use this prefix to filter out specific files. Set to "" to disable
 PREFIX = "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
 SAMPLES = ['A', 'B', 'C', 'D']
 
+### -------------------------------------
+### END OF USER-CONFIGURABLE PARAMETERS
+### -------------------------------------
+
+
+### Initialization
+### --------------
+# Sanity checks
+assert isinstance(PREFIX, str), "Prefix should be a string"
+SAMPLES = [SAMPLES] if isinstance(SAMPLES, str) else SAMPLES
+assert len(SAMPLES) in [1, 4], f"You can have either one or four samples; you provided {len(SAMPLES)}: {SAMPLES}"
 
 # Discover all input data files that match the given pattern
 PTRN = rf"({PREFIX}.*_\d{{3}}).rawtraces"
