@@ -10,7 +10,7 @@ from util import group_files, fixpath, run_matlab, get_criteria_file
 PREFIX = "V2Rpp"
 
 # Set names of your samples. A folder will be created for each of them. You can have either one or four
-SAMPLES = ['A', 'B', 'C', 'D']
+SAMPLES = "arrestin"
 
 ### -------------------------------------
 ### END OF USER-CONFIGURABLE PARAMETERS
@@ -35,6 +35,7 @@ for f in os.listdir("data/rawtraces/"):
 # Group input files
 GROUPED_FILES = group_files(raw_data_files)
 
+extract_folder = [] if len(SAMPLES) == 1 else ["plt-extract_samples"]
 
 rule all:
     input:
@@ -53,16 +54,9 @@ rule extract_samples:
         rt="data/rawtraces/{file}.rawtraces"
     output:
         rt=expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES),
-        plt=expand("data/plt-extract_samples/{{file}}.png")
+        plt=expand("data/{folder}/{{file}}.png", folder=extract_folder)
     run:
-        if len(SAMPLES) == 1:  # don't run extract_samples
-            print("One sample - skipping `extract_samples`")
-            for f in output.rt:
-                shutil.copy(input.rt, f)
-        elif len(SAMPLES) == 4:
-            run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
-        else:
-            raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
+        run_matlab("scripts/extract_samples.m", input.rt, output.rt, PLT=fixpath(output.plt))
 
 rule autotrace:
     input:
