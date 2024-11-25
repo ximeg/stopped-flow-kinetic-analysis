@@ -1,5 +1,4 @@
 from pathlib import Path
-import matlab.engine 
 import os
 import re
 import matlab.engine as me
@@ -48,9 +47,9 @@ def get_criteria_file(wildcards, criteria_file):
 def run_matlab(script, input_files, output_files, **kwargs):
     eng_sessions = me.find_matlab()  # Check for existing MATLAB sessions
     if not eng_sessions:
-        eng = matlab.engine.start_matlab()
+        eng = me.start_matlab()
     else:
-        eng = matlab.engine.connect_matlab(eng_sessions[0])
+        eng = me.connect_matlab(eng_sessions[0])
 
     eng.workspace['INPUT'] = fixpath(input_files)
     eng.workspace['OUTPUT'] = fixpath(output_files)
