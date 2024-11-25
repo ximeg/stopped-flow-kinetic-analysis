@@ -11,7 +11,7 @@ def group_files(files):
     groups = {}
     for file in files:
         # Extract base name by removing the last _###
-        base_name = re.sub(r"_\d{3}$", "", file)
+        base_name = re.sub(r"_\d{3}(\.\w+)?$", "", file)
         groups.setdefault(base_name, []).append(file)
     return groups
 
