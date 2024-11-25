@@ -37,7 +37,6 @@ rule all:
 # Extraction of microarrayed spots
 # This rule checks number of samples. If only one, it temporarily copies rawtraces to data/<sample>/rawtraces/.
 # If there are multiple samples, the corresponding traces are extracted and saved under data/<sample_N>/rawtraces/
-plt_extract_samples_folder = [] if len(SAMPLES) == 1 else ["plt-extract_samples"]
 extract_samples_path = expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES)
 print(extract_samples_path)
 if len(SAMPLES) == 1:
@@ -45,12 +44,16 @@ if len(SAMPLES) == 1:
     extract_samples_path = [temp(s) for s in extract_samples_path]
     print(extract_samples_path)
 
+plots_folder = []
+if config["PLOTS"]["extract_samples"] and len(SAMPLES) > 1:
+    plots_folder = ["plt_extract_samples"]
+
 rule extract_samples:
     input:
         "data/rawtraces/{file}.rawtraces"
     output:
         rawtraces = extract_samples_path,
-        plt       = expand("data/{folder}/{{file}}.png", folder=plt_extract_samples_folder)
+        plt       = expand("data/{dir}/{{file}}.png", dir = plots_folder)
     run:
         if len(SAMPLES) == 1:
             shutil.copy(input[0], output.rt[0])

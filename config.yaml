@@ -11,4 +11,8 @@ SAMPLES:
 # Whether you want to run autotrace on each individual rawtraces file
 AUTOTRACE_EACH: true
 
-# P
+# Plotting - what plots to save?
+PLOTS:
+  extract_samples: false
+  contour_individual: true
+  contour_combined: true
