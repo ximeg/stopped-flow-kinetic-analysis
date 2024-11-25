@@ -39,9 +39,11 @@ rule extract_samples:
     input:
         rt="data/rawtraces/{file}.rawtraces"
     output:
-        rt=expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES)
+        rt=expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES),
+        plt=expand("data/plt-extract_samples/{{file}}.png")
     run:
         mkdir(output.rt)
+        mkdir(output.plt)
 
         if len(SAMPLES) == 1:  # don't run extract_samples
             print("One sample - skipping `extract_samples`")
@@ -49,7 +51,7 @@ rule extract_samples:
                 shutil.copy(input.rt, f)
         elif len(SAMPLES) == 4:
             mkdir(output.rt)
-            run_matlab("scripts/extract_samples.m", input, output)
+            run_matlab("scripts/extract_samples.m", input, output, PLT=fixpath(output.plt))
         else:
             raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
 

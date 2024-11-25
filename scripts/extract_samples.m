@@ -35,6 +35,7 @@ title([f e],'Interpreter','none');
 %legend( {'Rejected','A','B','C','D'} );
 axis([0 nX 0 nY]);
 
+
 % Split FOV into four quadrants by molecule position.
 % Origin is top-lelt corner. order=[A B; C D]
 A = selectCenter(data,  y <= floor(nY/2) & x <= floor(nX/2), STD, 'ro' ); % top left
@@ -47,6 +48,11 @@ saveTraces( output_files{1}, A );
 saveTraces( output_files{2}, B );
 saveTraces( output_files{3}, C );
 saveTraces( output_files{4}, D )
+
+
+axis equal;
+saveas(gcf, PLT);
+close(gcf);  % Close the figure
 
 
 disp("---- END MATLAB ----")
