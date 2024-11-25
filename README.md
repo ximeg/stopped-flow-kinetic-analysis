@@ -123,3 +123,14 @@ The problem is the PuLP package, which got broken in version 2.8.0. You have to 
 pip uninstall pulp
 pip install pulp==2.7.0
 ```
+
+
+# Current plan
+
+1) Automate rawtraces -> [ABCD]/rawtraces (selectprintedspots script)
+2) Automate rawtraces -> combined_auto.traces (loadPickSaveTraces)
+3) Automate gammacorrection
+4) Automate idealization
+5) Automate python kinetic analysis of individual samples
+6) Automate plotting of final results
+7) Automate gettraces

@@ -1,80 +1,104 @@
-import os
 from pathlib import Path
-import matlab.engine  # Import MATLAB engine
+import matlab.engine 
+import os
+import re
+import shutil
 
-traces_dir = "data/A/traces/"
-combined_traces_dir = "data/A/combined_traces/"
-idealized_traces_dir = "data/A/idealized_traces/"
+# Use this prefix to filter out specific files. Set to "" to disable
+PREFIX = "V2Rpp"
 
-groups = sorted(set(Path(f).stem.split("_")[1] for f in os.listdir(traces_dir) if f.endswith(".traces")))
+# Set names of your samples. A folder will be created for each of them. You can have either one or four
+SAMPLES = ['A', 'B', 'C', 'D']
+PTRN = rf"({PREFIX}.*_\d{{3}}).tif"
+
+tifs = []
+for f in os.listdir("data/tif/"):
+    m = re.match(PTRN, f)
+    if m:
+        tifs.append(m.group(1))
+
+
+#if True:
+#    for s in SAMPLES:
+#       with open(f"data/conf/criteria.mat", "w") as f:
+#           f.write(s)
+
+# Function to group files by unique base names
+def group_files(files):
+    groups = {}
+    for file in files:
+        # Extract base name by removing the last _###
+        base_name = re.sub(r"_\d{3}$", "", file)
+        groups.setdefault(base_name, []).append(file)
+    return groups
+
+# Create the groups
+GROUPED_FILES = group_files(tifs)
+
+
+
+def fixpath(files):
+    """ fix file path(s) - convert to absolute & POSIX """
+    fun = lambda f: Path(os.path.abspath(f)).as_posix()
+    if isinstance(files, list):
+        return [fun(f) for f in files]
+    else:
+        return fun(files)
+
+def mkdir(files):
+    files = files if isinstance(files, list) else [files]
+    for f in files:
+        os.makedirs(os.path.dirname(f), exist_ok=True)
+
+
+
 
 rule all:
     input:
-        expand(f"{idealized_traces_dir}{{group}}.csv", group=groups)
+        # these are very final files we are trying to create
+        #expand(f"data/{{sample}}/autotrace/{PREFIX}_auto.traces", sample=SAMPLES)
+        expand("data/{sample}/autotrace/{group}_auto.traces", sample=SAMPLES, group=GROUPED_FILES.keys())
 
-rule combine_traces:
+rule gettraces:
     input:
-        lambda wildcards: sorted([f"{traces_dir}{f}" for f in os.listdir(traces_dir)
-                                  if f.endswith(".traces") and f"_{wildcards.group}_" in f])
+        tif="data/tif/{file}.tif"
     output:
-        f"{combined_traces_dir}{{group}}.traces"
+        rt="data/rawtraces/{file}.rawtraces"
     run:
-        # Ensure the output directory exists
-        os.makedirs(os.path.dirname(output[0]), exist_ok=True)
+        mkdir(output)
+        shutil.copy(input.tif, output.rt)
 
-        # Start MATLAB engine (reuse or start if not already running)
-        eng_sessions = matlab.engine.find_matlab()  # Check for existing MATLAB sessions
-        if not eng_sessions:
-            eng = matlab.engine.start_matlab()
-        else:
-            eng = matlab.engine.connect_matlab(eng_sessions[0])
-
-        # Convert inputs and outputs
-        input_files = [Path(os.path.abspath(f)).as_posix() for f in input]  # List of input file paths
-        output_file = Path(os.path.abspath(output[0])).as_posix()           # Output file path
-
-        # Assign variables to MATLAB workspace
-        eng.workspace['INPUT_FILES'] = input_files
-        eng.workspace['OUTPUT_FILE'] = output_file
-        eng.workspace['CRITERIA'] = os.path.abspath("data/A/config/criteria.mat")
-
-        # Call MATLAB script
-        eng.eval(f"cd('{os.getcwd()}');",nargout=0)
-        eng.eval("run('scripts/combine_traces.m');", nargout=0)
-
-        # Optionally, close MATLAB session
-        # eng.quit()
-
-
-rule idealize_traces:
+rule spots:
     input:
-        lambda wildcards: f"{combined_traces_dir}{wildcards.group}.traces"
+        rt="data/rawtraces/{file}.rawtraces"
     output:
-        f"{idealized_traces_dir}{{group}}.csv"
+        rt=expand("data/{sample}/rawtraces/{{file}}.rawtraces", sample=SAMPLES)
     run:
-        # Ensure the output directory exists
-        os.makedirs(os.path.dirname(output[0]), exist_ok=True)
+        mkdir(output.rt)
 
-        # Start MATLAB engine (reuse or start if not already running)
-        eng_sessions = matlab.engine.find_matlab()  # Check for existing MATLAB sessions
-        if not eng_sessions:
-            eng = matlab.engine.start_matlab()
+        if len(SAMPLES) == 1:  # don't run selectPrintedSpots
+            print("One sample - skipping `selectPrintedSpots`")
+            for f in output.rt:
+                shutil.copy(input.rt, f)
+        elif len(SAMPLES) == 4:
+            print("Running `selectPrintedSpots`")
+            for f in output.rt:
+                shutil.copy(input.rt, f)
         else:
-            eng = matlab.engine.connect_matlab(eng_sessions[0])
+            raise ValueError(f"Check SAMPLES variable - it has {len(SAMPLES)} samples, but should be either one or four")
 
-        # Convert inputs and outputs
-        input_file = Path(os.path.abspath(input[0])).as_posix()
+rule autotrace:
+    input:
+        rt=lambda wildcards: [f"data/{{sample}}/rawtraces/{g}.rawtraces" for g in GROUPED_FILES[wildcards.group]],
+        criteria="data/conf/{sample}.mat"
+    output:
+        at="data/{sample}/autotrace/{group}_auto.traces"
+    run:
+        mkdir(output.at)
 
-        output_file = Path(os.path.abspath(output[0])).as_posix()           # Output file path
-
-        # Assign variables to MATLAB workspace
-        eng.workspace['INPUT_FILE'] = input_file
-        eng.workspace['OUTPUT_FILE'] = output_file
-        eng.workspace['MODEL'] = os.path.abspath("data/A/config/batchkinetics.model")
-
-        # Call MATLAB script
-        eng.eval(f"cd('{os.getcwd()}');",nargout=0)
-        eng.eval("run('scripts/idealize_traces.m');", nargout=0)
-
-        # Optionally, close MATLAB session
-        # eng.quit()
+        txt = ""
+        for f in input.rt:
+            with open(f, 'r') as fh:
+                txt += fh.read()
+        with open(output.at, 'w') as fh:
+            fh.write(txt)
