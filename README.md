@@ -68,3 +68,17 @@ matlab.engine.find_matlab()
 Looks like Snakemake runs into problems interacting with matlab when number of jobs > 1.
 
 Matlab parallel pool can be disabled in cascadeConstants.m, line 244.
+
+# Known inssues
+
+When you're installing snakemake with pip, it is likely (as of Nov 2024) not going to work, throwing error
+```
+AttributeError: module 'pulp' has no attribute 'list_solvers'. Did you mean: 'listSolvers'?
+```
+
+The problem is the PuLP package, which got broken in version 2.8.0. You have to manually install version 2.7:
+
+```
+pip uninstall pulp
+pip install pulp==2.7.0
+```
