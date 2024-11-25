@@ -31,18 +31,25 @@ combined_traces_target = expand(
             sample=SAMPLES,
             group=config["GROUPED_FILES"].keys())
 
-contour_plots_ptrn = "data/{sample}/plt_traces/{group}.{fmt}"
-contour_plots_target = expand(contour_plots_ptrn,
+contour_plots_indiv_ptrn = "data/{sample}/plt_traces/{group}.{fmt}"
+contour_plots_indiv_target = expand(contour_plots_indiv_ptrn,
             sample=SAMPLES,
             fmt=config["PLOTS"]['contour_formats'],
             group=config["GROUPED_FILES"].keys()) if config["PLOTS"]["contour_individual"] else []
+
+contour_plots_combined_ptrn = "data/{sample}/plt_combined_traces/{group}.{fmt}"
+contour_plots_combined_target = expand(contour_plots_combined_ptrn,
+    sample = SAMPLES,
+    fmt=config["PLOTS"]['contour_formats'],
+    group =config["GROUPED_FILES"].keys()) if config["PLOTS"]["contour_combined"] else []
 
 # Main rule that defines what we want to get in the end
 rule all:
     input:
         combined_traces_target,
         "workflow_graph.png",
-        contour_plots_target
+        contour_plots_indiv_target,
+        contour_plots_combined_target
 
 
 
@@ -111,7 +118,21 @@ rule contour_plots_individual:
     input:
         lambda wildcards: input4combine_traces(wildcards,config)
     output:
-        contour_plots_ptrn
+        contour_plots_indiv_ptrn
+    run:
+        print(output)
+        run_matlab(
+            script="scripts/make_contour_plots.m",
+            input=input,
+            output=output,
+            N_FRAMES=int(config["PLOTS"]["contour_N_frames"])
+        )
+
+rule contour_plots_combined:
+    input:
+        lambda wildcards: f"data/{wildcards.sample}/combined_traces/{wildcards.group}.traces"
+    output:
+        contour_plots_combined_ptrn
     run:
         print(output)
         run_matlab(

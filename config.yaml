@@ -18,6 +18,6 @@ PLOTS:
   contour_combined: true
   contour_N_frames: 500
   contour_formats:
-    - fig
+#    - fig
     - png
-    - pdf
+#    - pdf

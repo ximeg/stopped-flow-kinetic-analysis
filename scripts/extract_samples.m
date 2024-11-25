@@ -50,7 +50,7 @@ if ~isempty(PLT) && ischar(PLT) % Only save and close the figure if PLT is a val
 end
 
 disp("---- END MATLAB ----")
-clear all;
+
 
 function output = selectCenter(data, quadrant, STD, color)
     % Select only the center of printed spots
